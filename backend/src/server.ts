@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 
-dotenv.config(); // Apenas usado localmente
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,7 +13,20 @@ const API_KEY = process.env.GOOGLE_API_KEY;
 app.use(cors());
 app.use(express.json());
 
-// Log para checar se variáveis estão chegando
+
+interface DriveFile {
+  id: string;
+  name: string;
+  mimeType: string;
+}
+
+
+interface ImageFile {
+  name: string;
+  src: string;
+}
+
+
 console.log('=== Iniciando Backend ===');
 console.log('FOLDER_ID:', FOLDER_ID);
 console.log('API_KEY:', API_KEY ? 'Existe' : 'Não existe');
@@ -34,19 +47,21 @@ app.get('/api/galeria', async (req, res) => {
       return res.status(500).json({ error: 'Erro na resposta da Google Drive API' });
     }
 
-    const data = await response.json();
+    const data: { files?: DriveFile[] } = await response.json();
     console.log('Dados recebidos da API do Drive:', data);
 
-    if (!Array.isArray(data.files)) {
-      console.error('Formato inesperado de dados:', data);
+
+    let files: ImageFile[] = [];
+
+    if (data && Array.isArray(data.files)) {
+      files = data.files.map((file: DriveFile) => ({
+        name: file.name,
+        src: `https://drive.google.com/uc?id=${file.id}`,
+      }));
+    } else {
+      console.error('Formato inesperado de dados do Drive:', data);
       return res.status(500).json({ error: 'Formato de dados inesperado da Drive API' });
     }
-
-    // Monta o array de imagens
-    const files = data.files.map(file => ({
-      name: file.name,
-      src: `https://drive.google.com/uc?id=${file.id}`,
-    }));
 
     return res.json(files);
 

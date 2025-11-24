@@ -43,23 +43,28 @@ export default function GalleryFull() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('https://site-aleandrade.onrender.com/api/galeria')
-      .then(res => res.json())
-      .then(data => {
+    const fetchGaleria = async () => {
+      setLoading(true)
+      try {
+        const res = await fetch('https://site-aleandrade.onrender.com/api/galeria')
+        const data = await res.json()
+
         if (Array.isArray(data)) {
           setImagens(data)
         } else if (data.error) {
           setError(data.error)
         } else {
-          setError('Formato de dados inesperado')
+          setError('Formato de dados inesperado da API')
         }
-        setLoading(false)
-      })
-      .catch(err => {
+      } catch (err) {
         console.error(err)
         setError('Erro ao carregar imagens')
+      } finally {
         setLoading(false)
-      })
+      }
+    }
+
+    fetchGaleria()
   }, [])
 
   return (
@@ -74,15 +79,15 @@ export default function GalleryFull() {
           <p>Carregando imagens...</p>
         ) : error ? (
           <p>{error}</p>
-        ) : imagens.length === 0 ? (
+        ) : !Array.isArray(imagens) || imagens.length === 0 ? (
           <p>Nenhuma imagem encontrada.</p>
         ) : (
           <Gallery>
             {imagens.map((img) => (
               <GalleryItem
                 key={img.src}
-                src={img.src} // URL completa já do backend
-                alt={img.name} // nome da imagem
+                src={img.src}
+                alt={img.name}
                 onClick={setModalImage}
               />
             ))}
