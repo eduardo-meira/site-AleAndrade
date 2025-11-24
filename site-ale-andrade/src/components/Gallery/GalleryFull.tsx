@@ -37,7 +37,7 @@ export default function GalleryFull() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/galeria')
+    fetch('https://site-aleandrade.onrender.com/api/galeria')
       .then(res => res.json())
       .then(data => {
         setImagens(data)
