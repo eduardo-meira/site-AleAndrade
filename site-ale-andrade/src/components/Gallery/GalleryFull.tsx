@@ -37,17 +37,24 @@ export default function GalleryFull() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('https://site-aleandrade.onrender.com/api/galeria')
-      .then(res => res.json())
-      .then(data => {
+  fetch('/api/galeria')
+    .then(res => res.json())
+    .then(data => {
+      if (Array.isArray(data)) {
         setImagens(data)
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error(err)
-        setLoading(false)
-      })
-  }, [])
+      } else {
+        console.error('Resposta inesperada da API:', data)
+        setImagens([])
+      }
+      setLoading(false)
+    })
+    .catch(err => {
+      console.error('Erro ao buscar imagens:', err)
+      setImagens([])
+      setLoading(false)
+    })
+}, [])
+
 
   return (
     <>
