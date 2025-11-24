@@ -1,81 +1,65 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import fetch from 'node-fetch';
+import express, { Request, Response } from 'express'
+import fetch from 'node-fetch'
+import cors from 'cors'
+import dotenv from 'dotenv'
 
-dotenv.config();
+dotenv.config()
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
-const API_KEY = process.env.GOOGLE_API_KEY;
+const app = express()
+const PORT = process.env.PORT || 3000
+const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID
+const API_KEY = process.env.GOOGLE_API_KEY
 
-app.use(cors());
-app.use(express.json());
+app.use(cors())
+app.use(express.json())
 
-interface DriveFile {
-  id: string;
-  name: string;
-  mimeType: string;
-}
+// --- Rota de teste das variáveis de ambiente ---
+app.get('/api/test-env', (req: Request, res: Response) => {
+  console.log('=== Variáveis de ambiente iniciais ===')
+  console.log('FOLDER_ID:', FOLDER_ID)
+  console.log('API_KEY:', API_KEY)
+  console.log('PORT:', PORT)
 
-interface ImageFile {
-  name: string;
-  src: string;
-}
-
-console.log('=== Variáveis de ambiente iniciais ===');
-console.log('GOOGLE_DRIVE_FOLDER_ID:', FOLDER_ID);
-console.log('GOOGLE_API_KEY:', API_KEY ? 'Existe' : 'Não existe');
-console.log('PORT:', PORT);
-console.log('=====================================');
-
-app.get('/api/test-env', (req, res) => {
   res.json({
-    FOLDER_ID: process.env.GOOGLE_DRIVE_FOLDER_ID || null,
-    API_KEY: process.env.GOOGLE_API_KEY || null,
-    PORT: process.env.PORT || null,
-  });
-});
+    FOLDER_ID: FOLDER_ID || null,
+    API_KEY: API_KEY || null,
+    PORT: PORT,
+  })
+})
 
-app.get('/api/galeria', async (req, res) => {
+// --- Rota da galeria ---
+app.get('/api/galeria', async (req: Request, res: Response) => {
   if (!FOLDER_ID || !API_KEY) {
-    console.error('Variáveis de ambiente faltando!');
-    return res.status(500).json({ error: 'Variáveis de ambiente faltando no backend' });
+    console.error('Variáveis de ambiente faltando!')
+    return res.status(500).json({ error: 'Variáveis de ambiente faltando no backend' })
   }
 
   try {
-    const url = `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`;
-    console.log('Chamando Google Drive API:', url);
+    const url = `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`
+    const response = await fetch(url)
+    const data = await response.json()
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error('Erro na resposta da Google Drive API:', response.status, response.statusText);
-      return res.status(500).json({ error: 'Erro na resposta da Google Drive API' });
+    if (!data.files || !Array.isArray(data.files)) {
+      console.error('Erro ao acessar Drive API: resposta inesperada', data)
+      return res.status(500).json({ error: 'Erro ao acessar Drive API' })
     }
 
-    const data: { files?: DriveFile[] } = await response.json();
-    console.log('Dados recebidos da API do Drive:', data);
-
-    let files: ImageFile[] = [];
-
-    if (data && Array.isArray(data.files)) {
-      files = data.files.map((file: DriveFile) => ({
-        name: file.name,
+    // Monta array de imagens para o frontend
+    const imagens = data.files
+      .filter((file: any) => file.mimeType.startsWith('image/'))
+      .map((file: any) => ({
         src: `https://drive.google.com/uc?id=${file.id}`,
-      }));
-    } else {
-      console.error('Formato inesperado de dados do Drive:', data);
-      return res.status(500).json({ error: 'Formato de dados inesperado da Drive API' });
-    }
+        alt: file.name,
+      }))
 
-    return res.json(files);
+    res.json(imagens)
   } catch (err) {
-    console.error('Erro ao acessar Drive API:', err);
-    return res.status(500).json({ error: 'Erro ao acessar Drive API' });
+    console.error('Erro ao acessar Drive API:', err)
+    res.status(500).json({ error: 'Erro ao acessar Drive API' })
   }
-});
+})
 
+// --- Inicia o servidor ---
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-});
+  console.log(`Backend rodando na porta ${PORT}`)
+})
