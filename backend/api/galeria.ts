@@ -1,11 +1,12 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import express from 'express'
 import fetch from 'node-fetch'
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Substitua aqui pela sua pasta do Google Drive e sua API Key
-  const FOLDER_ID = '1mhFZ9GjNAjt3ZxO4QV6qUNwu3lSTfJVo'
-  const API_KEY = 'AIzaSyCC-kv3OB8PbRSpb_WfG8TrX0V6Gg9bYJg'
+const app = express()
+const PORT = process.env.PORT || 3000
+const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID
+const API_KEY = process.env.GOOGLE_API_KEY
 
+app.get('/api/galeria', async (req, res) => {
   try {
     const url = `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`
     const response = await fetch(url)
@@ -22,9 +23,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         alt: file.name,
       }))
 
-    res.status(200).json(imagens)
+    res.json(imagens)
   } catch (err) {
-    console.error('Erro ao acessar Drive API:', err)
+    console.error(err)
     res.status(500).json({ error: 'Erro ao acessar Drive API' })
   }
-}
+})
+
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`)
+})
