@@ -36,8 +36,8 @@ export default function GalleryFull() {
   const [imagens, setImagens] = useState<{ src: string; alt: string }[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-  fetch('/api/galeria')
+useEffect(() => {
+  fetch('https://ale-ophotografo.vercel.app/api/galeria')
     .then(res => res.json())
     .then(data => {
       if (Array.isArray(data)) {
