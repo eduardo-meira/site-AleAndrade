@@ -1,50 +1,35 @@
-import express, { Request, Response } from 'express'
-import fetch from 'node-fetch'
+import express from 'express'
 import cors from 'cors'
+import fetch from 'node-fetch'
 import dotenv from 'dotenv'
 
 dotenv.config()
 
 const app = express()
+app.use(cors())
+
 const PORT = process.env.PORT || 3000
 const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID
 const API_KEY = process.env.GOOGLE_API_KEY
 
-app.use(cors())
-app.use(express.json())
+if (!FOLDER_ID || !API_KEY) {
+  console.error('⚠️ Variáveis de ambiente faltando no backend!')
+}
 
-// --- Rota de teste das variáveis de ambiente ---
-app.get('/api/test-env', (req: Request, res: Response) => {
-  console.log('=== Variáveis de ambiente iniciais ===')
-  console.log('FOLDER_ID:', FOLDER_ID)
-  console.log('API_KEY:', API_KEY)
-  console.log('PORT:', PORT)
-
-  res.json({
-    FOLDER_ID: FOLDER_ID || null,
-    API_KEY: API_KEY || null,
-    PORT: PORT,
-  })
-})
-
-// --- Rota da galeria ---
-app.get('/api/galeria', async (req: Request, res: Response) => {
-  if (!FOLDER_ID || !API_KEY) {
-    console.error('Variáveis de ambiente faltando!')
-    return res.status(500).json({ error: 'Variáveis de ambiente faltando no backend' })
-  }
-
+app.get('/api/galeria', async (req, res) => {
   try {
+    if (!FOLDER_ID || !API_KEY) {
+      return res.status(500).json({ error: 'Variáveis de ambiente faltando' })
+    }
+
     const url = `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`
     const response = await fetch(url)
     const data = await response.json()
 
     if (!data.files || !Array.isArray(data.files)) {
-      console.error('Erro ao acessar Drive API: resposta inesperada', data)
       return res.status(500).json({ error: 'Erro ao acessar Drive API' })
     }
 
-    // Monta array de imagens para o frontend
     const imagens = data.files
       .filter((file: any) => file.mimeType.startsWith('image/'))
       .map((file: any) => ({
@@ -59,7 +44,6 @@ app.get('/api/galeria', async (req: Request, res: Response) => {
   }
 })
 
-// --- Inicia o servidor ---
 app.listen(PORT, () => {
-  console.log(`Backend rodando na porta ${PORT}`)
+  console.log(`Backend rodando em http://localhost:${PORT}`)
 })

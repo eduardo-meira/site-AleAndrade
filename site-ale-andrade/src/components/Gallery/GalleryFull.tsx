@@ -37,7 +37,7 @@ export default function GalleryFull() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('https://ale-ophotografo.vercel.app/api/galeria')
+    fetch('https://site-aleandrade.onrender.com/api/galeria')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
