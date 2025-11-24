@@ -36,26 +36,24 @@ export default function GalleryFull() {
   const [imagens, setImagens] = useState<{ src: string; alt: string }[]>([])
   const [loading, setLoading] = useState(true)
 
-useEffect(() => {
-  fetch('https://ale-ophotografo.vercel.app/api/galeria')
-    .then(res => res.json())
-    .then(data => {
-      if (Array.isArray(data)) {
-        setImagens(data)
-      } else {
-        console.error('Resposta inesperada da API:', data)
+  useEffect(() => {
+    fetch('https://ale-ophotografo.vercel.app/api/galeria')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setImagens(data)
+        } else {
+          console.error('Resposta inesperada da API:', data)
+          setImagens([])
+        }
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Erro ao buscar imagens:', err)
         setImagens([])
-      }
-      setLoading(false)
-    })
-    .catch(err => {
-      console.error('Erro ao buscar imagens:', err)
-      setImagens([])
-      setLoading(false)
-    })
-}, [])
-
-
+        setLoading(false)
+      })
+  }, [])
 
   return (
     <>
@@ -71,10 +69,10 @@ useEffect(() => {
           <p>Nenhuma imagem encontrada.</p>
         ) : (
           <Gallery>
-            {imagens.map(img => (
+            {imagens.map((img) => (
               <GalleryItem
                 key={img.src}
-                src={img.src} // já vem com link do Google Drive
+                src={img.src}
                 alt={img.alt}
                 onClick={setModalImage}
               />
