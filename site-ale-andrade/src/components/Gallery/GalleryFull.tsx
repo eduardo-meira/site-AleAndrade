@@ -30,21 +30,34 @@ const GalleryItem = ({ src, alt, onClick }: GalleryItemProps) => (
   </Item>
 )
 
+interface ImageType {
+  src: string
+  name: string
+}
+
 export default function GalleryFull() {
   const [modalImage, setModalImage] = useState<string | null>(null)
   const { visible, sectionRef } = useRevealOnScroll(0.2)
-  const [imagens, setImagens] = useState<{ src: string; alt: string }[]>([])
+  const [imagens, setImagens] = useState<ImageType[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('https://site-aleandrade.onrender.com/api/galeria')
       .then(res => res.json())
       .then(data => {
-        setImagens(data)
+        if (Array.isArray(data)) {
+          setImagens(data)
+        } else if (data.error) {
+          setError(data.error)
+        } else {
+          setError('Formato de dados inesperado')
+        }
         setLoading(false)
       })
       .catch(err => {
         console.error(err)
+        setError('Erro ao carregar imagens')
         setLoading(false)
       })
   }, [])
@@ -59,18 +72,19 @@ export default function GalleryFull() {
 
         {loading ? (
           <p>Carregando imagens...</p>
+        ) : error ? (
+          <p>{error}</p>
         ) : imagens.length === 0 ? (
           <p>Nenhuma imagem encontrada.</p>
         ) : (
           <Gallery>
             {imagens.map((img) => (
               <GalleryItem
-              key={img.src}
-              src={`http://localhost:3000${img.src}`}
-              alt={img.alt}
-              onClick={setModalImage}
-            />
-
+                key={img.src}
+                src={img.src} // URL completa já do backend
+                alt={img.name} // nome da imagem
+                onClick={setModalImage}
+              />
             ))}
           </Gallery>
         )}
