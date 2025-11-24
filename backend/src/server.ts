@@ -1,3 +1,10 @@
+console.log('=== Variáveis de ambiente atuais ===');
+console.log('GOOGLE_DRIVE_FOLDER_ID:', process.env.GOOGLE_DRIVE_FOLDER_ID);
+console.log('GOOGLE_API_KEY:', process.env.GOOGLE_API_KEY ? 'Existe' : 'Não existe');
+console.log('PORT:', process.env.PORT);
+console.log('===============================');
+
+
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -25,7 +32,6 @@ interface ImageFile {
   name: string;
   src: string;
 }
-
 
 console.log('=== Iniciando Backend ===');
 console.log('FOLDER_ID:', FOLDER_ID);
