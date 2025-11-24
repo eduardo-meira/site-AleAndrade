@@ -56,6 +56,7 @@ useEffect(() => {
 }, [])
 
 
+
   return (
     <>
       <Section id="galeria" ref={sectionRef} $visible={visible}>

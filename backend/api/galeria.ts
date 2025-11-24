@@ -1,18 +1,9 @@
-// api/galeria.ts
 import fetch from 'node-fetch'
 
 const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID
 const API_KEY = process.env.GOOGLE_API_KEY
 
 export default async function handler(req: any, res: any) {
-  // Teste simples das variáveis
-  if (req.query.test === 'env') {
-    return res.json({
-      FOLDER_ID: FOLDER_ID || null,
-      API_KEY: API_KEY ? 'Existe' : null
-    })
-  }
-
   if (!FOLDER_ID || !API_KEY) {
     return res.status(500).json({ error: 'Variáveis de ambiente faltando' })
   }
