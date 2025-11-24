@@ -1,10 +1,3 @@
-console.log('=== Variáveis de ambiente atuais ===');
-console.log('GOOGLE_DRIVE_FOLDER_ID:', process.env.GOOGLE_DRIVE_FOLDER_ID);
-console.log('GOOGLE_API_KEY:', process.env.GOOGLE_API_KEY ? 'Existe' : 'Não existe');
-console.log('PORT:', process.env.PORT);
-console.log('===============================');
-
-
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -20,22 +13,30 @@ const API_KEY = process.env.GOOGLE_API_KEY;
 app.use(cors());
 app.use(express.json());
 
-
 interface DriveFile {
   id: string;
   name: string;
   mimeType: string;
 }
 
-
 interface ImageFile {
   name: string;
   src: string;
 }
 
-console.log('=== Iniciando Backend ===');
-console.log('FOLDER_ID:', FOLDER_ID);
-console.log('API_KEY:', API_KEY ? 'Existe' : 'Não existe');
+console.log('=== Variáveis de ambiente iniciais ===');
+console.log('GOOGLE_DRIVE_FOLDER_ID:', FOLDER_ID);
+console.log('GOOGLE_API_KEY:', API_KEY ? 'Existe' : 'Não existe');
+console.log('PORT:', PORT);
+console.log('=====================================');
+
+app.get('/api/test-env', (req, res) => {
+  res.json({
+    FOLDER_ID: process.env.GOOGLE_DRIVE_FOLDER_ID || null,
+    API_KEY: process.env.GOOGLE_API_KEY || null,
+    PORT: process.env.PORT || null,
+  });
+});
 
 app.get('/api/galeria', async (req, res) => {
   if (!FOLDER_ID || !API_KEY) {
@@ -49,13 +50,12 @@ app.get('/api/galeria', async (req, res) => {
 
     const response = await fetch(url);
     if (!response.ok) {
-      console.error('Erro na resposta da Google Drive API:', response.statusText);
+      console.error('Erro na resposta da Google Drive API:', response.status, response.statusText);
       return res.status(500).json({ error: 'Erro na resposta da Google Drive API' });
     }
 
     const data: { files?: DriveFile[] } = await response.json();
     console.log('Dados recebidos da API do Drive:', data);
-
 
     let files: ImageFile[] = [];
 
@@ -70,7 +70,6 @@ app.get('/api/galeria', async (req, res) => {
     }
 
     return res.json(files);
-
   } catch (err) {
     console.error('Erro ao acessar Drive API:', err);
     return res.status(500).json({ error: 'Erro ao acessar Drive API' });
